@@ -4,9 +4,7 @@ require "kconv"
 require "json"
 
 module News
-  #ニュー速(嫌儲)勢いAPI
   class Ikioi
-
     def initialize(board_name = "poverty")
       url = "http://2ch-ranking.net/ranking.json?board=#{board_name}&callback=callback"
       raw_ikioi_str = Kconv.toutf8(open(url).read)
@@ -14,29 +12,38 @@ module News
       @ikioi_arr = JSON.parse(ikioi_str)
     end
 
-    #人気順に任意の個数( < 100)のdat番号の配列を返す
-    def datfiles(num = 10)
-      dat_files = []
-      num.times {|i|
-        url = @ikioi_arr[i]["url"]
+    def datfile(num = 1)
+      # example:  News.datfile => "1281073407.dat"
+      if 0 < num && num <= 100
+        url = @ikioi_arr[num -1]["url"]
         thread_id = url.split("/").last
-        dat_files << thread_id + ".dat"
-      }
-      return dat_files
+        dat_file = thread_id + ".dat"
+        return dat_file
+      else
+        false
+      end
     end
 
-    #任意の順位( < 100)のデータを返す
     def details(num = 1)
-      #入ってるデータ：rank,updown,board_name,board,url,title,res,ikioi
-      return @ikioi_arr[num - 1]
+      #   example:
+      #   News.details =>
+      #   {"rank"=>"1",
+      #   "updown"=>"new",
+      #   "url"=>"engawa.2ch.net/poverty/1381073407/",
+      #   "title"=>"【速報】アニメDVD・BDの売り上げを見守るスレ13917 ",
+      #   "res"=>"999",
+      #   "ikioi"=>"31246"}
+      if 0 < num && num <= 100
+        return @ikioi_arr[num - 1]
+      else
+        return false
+      end
     end
 
   end
 
 
-  #ニュー速(嫌儲)スレッド用API
   class Thread
-
     def initialize(dat)
       @dat = dat
       @title = get_title
@@ -48,12 +55,15 @@ module News
       return @title
     end
 
-    #指定した番号のレスを抽出
     def res(num = 1)
+      # example News::Thread.res =>
+      #  {"number"=>1,
+      #   "name"=>"番組の途中ですがアフィサイトへの天才は禁止です",
+      #   "date"=>"2013/10/07(月) 00:30:07.81 ID:P0Y/yhN+0 BE:1063741853-2BP(1260)",
+      #   "text"=>"本文"}
       return @thread_data[num -1]
     end
 
-    #ID抽出
     def find_id(id = "sample")
       result = []
       @thread_data.each do |res_data|
@@ -64,7 +74,6 @@ module News
       return result
     end
 
-    #指定した番号へのレスを全て抽出
     def to_res(num =1)
       result = []
       @thread_data.each do |res_data|
@@ -76,7 +85,6 @@ module News
     end
 
     private
-    #スレッドを整形
     def thread_data_to_array
       url = "http://engawa.2ch.net/poverty/dat/#{@dat}"
       raw_thread = Kconv.toutf8(open(url).read).strip
@@ -93,7 +101,6 @@ module News
       return result
     end
 
-    #subject.txtからスレタイ取得
     def get_title
       subject_url = "http://engawa.2ch.net/poverty/subject.txt"
       raw_subject = Kconv.toutf8(open(subject_url).read).strip

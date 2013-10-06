@@ -5,14 +5,30 @@ Kenmou_API
 
 ## How to use
 
-勢いは1分に1回アクセスぐらいが良い
+勢い情報は1分に1回アクセスぐらいにとどめておくこと
 
 ```
-ikioi = Ikioi_API.new
+ikioi = Ikioi.new
 
-ikioi.datfiles(10).each do |dat|
-  thread = Thread.new(dat)
-  print thread.title
-  print thread.find_id("ID")                                                                    
-end
+ikioi.datfile
+=> "1234244324.dat"
+
+ikioi.details
+=>{"rank"=>"1",
+   "url"=>"engawa.2ch.net/poverty/1381073407/",
+   "title"=>"【速報】アニメDVD・BDの売り上げを見守るスレ13917 ",
+   "res"=>"1001",
+   "ikioi"=>"20223"}
+
+thread = Thread.new("1234244324.dat")
+
+thread.res
+=> {"number"=>1,
+   "name"=>"番組の途中ですがアフィサイトへの転載は禁止です",
+   "date"=>"2013/10/07(月) 00:30:07.81 ID:P0Y/yhN+0 BE:1063741853-2BP(1260)",
+   "text"=>"本文"}
+
+thread.find_id("ID")
+
+thread.to_res(res_number)
 ```
