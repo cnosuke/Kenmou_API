@@ -47,8 +47,8 @@ module News
     def initialize(dat)
       @dat = dat
       @title = get_title
-      @thread_data = thread_data_to_array #number,name,date,textの辞書
-      @res_count = @thread_data.count #レス数
+      @thread_data = thread_data_to_array 
+      @res_count = @thread_data.count 
     end
 
     def title
