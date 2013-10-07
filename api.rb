@@ -44,15 +44,13 @@ module News
 
 
   class Thread
+
+    attr_reader :title, :res_count
     def initialize(dat)
       @dat = dat
       @title = get_title
       @thread_data = thread_data_to_array 
       @res_count = @thread_data.count 
-    end
-
-    def title
-      return @title
     end
 
     def res(num = 1)
