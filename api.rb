@@ -2,12 +2,13 @@
 require "open-uri"
 require "kconv"
 require "json"
+require "time"
 
 module News
   class Ikioi
     def initialize(board_name = "poverty")
       url = "http://2ch-ranking.net/ranking.json?board=#{board_name}&callback=callback"
-      raw_ikioi_str = Kconv.toutf8(open(url).read)
+      raw_ikioi_str = Kconv.toutf8(open(url, "r:UTF-8").read)
       ikioi_str = raw_ikioi_str.gsub(/^callback\(/,"").gsub(/\);$/,"")
       @ikioi_arr = JSON.parse(ikioi_str)
     end
@@ -55,11 +56,16 @@ module News
 
     def res(num = 1)
       # example News::Thread.res =>
-      #  {"number"=>1,
-      #   "name"=>"番組の途中ですがアフィサイトへの天才は禁止です",
-      #   "date"=>"2013/10/07(月) 00:30:07.81 ID:P0Y/yhN+0 BE:1063741853-2BP(1260)",
-      #   "text"=>"本文"}
-      return @thread_data[num -1]
+      # {"number"=>1,
+      # "name"=>"番組の途中ですがアフィサイトへの転載は禁止です",
+      # "date_str"=>"2013/10/08(火) 21:59:59.38 ID:Me1TT+g+0",
+      # "date"=>2013-10-08 21:59:59 +0900,
+      # "text"=> "本文"}
+      if 0 < num && num <= @res_count
+        return @thread_data[num -1]
+      else
+        return @thread_data.last
+      end
     end
 
     def find_id(id = "sample")
@@ -82,17 +88,28 @@ module News
       return result
     end
 
+    def popular_res
+      result = []
+      1.upto(@res_count) do |i|
+        if to_res(i).size >= 3
+          result << res(i)
+        end
+      end
+      return result
+    end
+
     private
     def thread_data_to_array
       url = "http://engawa.2ch.net/poverty/dat/#{@dat}"
-      raw_thread = Kconv.toutf8(open(url).read).strip
+      raw_thread = Kconv.toutf8(open(url, "r:UTF-8").read).strip
       result = []
       res_number = 1
       raw_thread.split("<>").each_slice(4).with_index(1) do |res_data,i|
         result << {
           "number" => i,
           "name" => res_data[0].strip,
-          "date" => res_data[2],
+          "date_str" => res_data[2],
+          "date" => Time.parse(res_data[2].split("ID").first),
           "text" => res_data[3].strip
         }
       end
@@ -101,7 +118,7 @@ module News
 
     def get_title
       subject_url = "http://engawa.2ch.net/poverty/subject.txt"
-      raw_subject = Kconv.toutf8(open(subject_url).read).strip
+      raw_subject = Kconv.toutf8(open(subject_url, "r:UTF-8").read).strip
       raw_subject.each_line do |data|
         if data.include?(@dat)
           return data.split("<>")[1].chomp.sub(/\([0-9]+\)$/,"").strip
