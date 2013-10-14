@@ -2,6 +2,7 @@
 require "open-uri"
 require "json"
 require "time"
+require 'pry'
 
 module News
 
@@ -24,10 +25,10 @@ module News
 
     def datfile(num = 1)
       # example:  News.datfile => "1281073407.dat"
-      if 0 < num && num <= 100
-        url = @ikioi_arr[num -1]["url"]
+      if (1..100).include? num
+        url = @ikioi_arr[num - 1]["url"]
         thread_id = url.split("/").last
-        dat_file = thread_id + ".dat"
+        dat_file = "#{thread_id}.dat"
         return dat_file
       else
         false
@@ -43,7 +44,7 @@ module News
       #   "title"=>"【速報】アニメDVD・BDの売り上げを見守るスレ13917 ",
       #   "res"=>"999",
       #   "ikioi"=>"31246"}
-      if 0 < num && num <= 100
+      if (1..100).include? num
         return @ikioi_arr[num - 1]
       else
         return false
@@ -70,7 +71,7 @@ module News
       # "date_str"=>"2013/10/08(火) 21:59:59.38 ID:Me1TT+g+0",
       # "date"=>2013-10-08 21:59:59 +0900,
       # "text"=> "本文"}
-      if 0 < num && num <= @res_count
+      if (1..@res_count).include? num
         return @thread_data[num -1]
       else
         return @thread_data.last
@@ -110,19 +111,16 @@ module News
     private
     def thread_data_to_array
       url = "http://engawa.2ch.net/poverty/dat/#{@dat}"
-      raw_thread = Parser::read_dat(url).strip
-      result = []
-      raw_thread.split("<>").each_slice(4).with_index(1) do |res_data,i|
-        break if i == 1000
-        result << {
-          "number" => i,
-          "name" => res_data[0].strip,
-          "date_str" => res_data[2],
-          "date" => Time.parse(res_data[2].split("ID").first),
-          "text" => res_data[3].strip
+      return Parser::read_dat(url).lines.map.with_index do |line, i| 
+        res_data = line.split("<>")
+       {
+          number: i,
+          name: res_data[0].strip,
+          date_str: res_data[2],
+          date: ( i == 1000 ? "" : Time.parse(res_data[2].split("ID").first) ),
+          text: res_data[3].strip
         }
       end
-      return result
     end
 
     def get_title
