@@ -2,7 +2,6 @@
 require "open-uri"
 require "json"
 require "time"
-require 'pry'
 
 module News
 
