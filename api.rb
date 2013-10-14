@@ -9,7 +9,7 @@ module News
     class << self
       def read_dat(file)
         open(file, 'r:Shift_JIS').read
-        .encode("UTF-8", :invalid => :replace, :undef => :replace)
+        .encode("UTF-8", invalid: :replace, undef: :replace)
       end
     end
   end
