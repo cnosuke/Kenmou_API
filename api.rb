@@ -1,14 +1,23 @@
 # coding:utf-8
 require "open-uri"
-require "kconv"
 require "json"
 require "time"
 
 module News
+
+  class Parser
+    class << self
+      def read_dat(file)
+        open(file, 'r:Shift_JIS').read
+        .encode("UTF-8", :invalid => :replace, :undef => :replace)
+      end
+    end
+  end
+  
   class Ikioi
     def initialize(board_name = "poverty")
       url = "http://2ch-ranking.net/ranking.json?board=#{board_name}&callback=callback"
-      raw_ikioi_str = Kconv.toutf8(open(url, "r:UTF-8").read)
+      raw_ikioi_str = Parser::read_dat(url)
       ikioi_str = raw_ikioi_str.gsub(/^callback\(/,"").gsub(/\);$/,"")
       @ikioi_arr = JSON.parse(ikioi_str)
     end
@@ -101,10 +110,10 @@ module News
     private
     def thread_data_to_array
       url = "http://engawa.2ch.net/poverty/dat/#{@dat}"
-      raw_thread = Kconv.toutf8(open(url, "r:UTF-8").read).strip
+      raw_thread = Parser::read_dat(url).strip
       result = []
-      res_number = 1
       raw_thread.split("<>").each_slice(4).with_index(1) do |res_data,i|
+        break if i == 1000
         result << {
           "number" => i,
           "name" => res_data[0].strip,
@@ -118,7 +127,7 @@ module News
 
     def get_title
       subject_url = "http://engawa.2ch.net/poverty/subject.txt"
-      raw_subject = Kconv.toutf8(open(subject_url, "r:UTF-8").read).strip
+      raw_subject = Parser::read_dat(subject_url)
       raw_subject.each_line do |data|
         if data.include?(@dat)
           return data.split("<>")[1].chomp.sub(/\([0-9]+\)$/,"").strip
