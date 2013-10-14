@@ -4,7 +4,6 @@ require "json"
 require "time"
 
 module News
-
   class Parser
     class << self
       def read_dat(file)
@@ -54,14 +53,21 @@ module News
 
 
   class Thread
-
-    attr_reader :title, :res_count
     def initialize(dat)
       @dat = dat
-      @title = get_title
-      @thread_data = thread_data_to_array 
-      @res_count = @thread_data.count 
     end
+
+    def title
+      @title ||= get_title
+    end
+
+    def thread_data
+      @thread_data ||= thread_data_to_array 
+    end
+
+    def res_count
+      @res_count ||= thread_data.count 
+    end      
 
     def res(num = 1)
       # example News::Thread.res =>
@@ -70,16 +76,16 @@ module News
       # "date_str"=>"2013/10/08(火) 21:59:59.38 ID:Me1TT+g+0",
       # "date"=>2013-10-08 21:59:59 +0900,
       # "text"=> "本文"}
-      if (1..@res_count).include? num
-        return @thread_data[num -1]
+      if (1..res_count).include? num
+        return thread_data[num -1]
       else
-        return @thread_data.last
+        return thread_data.last
       end
     end
 
     def find_id(id = "sample")
       result = []
-      @thread_data.each do |res_data|
+      thread_data.each do |res_data|
         if res_data["date"].include?(id)
           result << res_data
         end
@@ -89,7 +95,7 @@ module News
 
     def to_res(num =1)
       result = []
-      @thread_data.each do |res_data|
+      thread_data.each do |res_data|
         if res_data["text"].include?("&gt;&gt;#{num}</a>")
           result << res_data
         end
@@ -131,9 +137,7 @@ module News
         end
       end
     end
-
   end
-
 end
 
 
