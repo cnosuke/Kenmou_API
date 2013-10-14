@@ -113,7 +113,7 @@ module News
       url = "http://engawa.2ch.net/poverty/dat/#{@dat}"
       return Parser::read_dat(url).lines.map.with_index do |line, i| 
         res_data = line.split("<>")
-       {
+        {
           number: i,
           name: res_data[0].strip,
           date_str: res_data[2],
